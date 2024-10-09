@@ -24,7 +24,7 @@ def parse_arguments():
                         help="Number of channels (default: 1)")
     parser.add_argument("--chunk", type=int, default=1024,
                         help="Chunk size (default: 1024)")
-    parser.add_argument("--input_device", type=int, help="Input device index (default: auto-detect Black Hole)")
+    parser.add_argument("--input_device", type=str, help="Input device name (default: auto-detect Black Hole)")
     parser.add_argument("--debug", action="store_true", help="Enable debug mode")
     parser.add_argument("--buffer_duration", type=float, default=2.0,
                         help="Duration of audio buffer in seconds (default: 2.0)")
@@ -74,7 +74,7 @@ def main():
     processing_queue = queue.Queue()
     translation_queue = queue.Queue()
     
-    audio_capture = AudioCapture(config, audio_queue)
+    audio_capture = AudioCapture(config, audio_queue, args)
     audio_processing = AudioProcessing(config, audio_queue, processing_queue)
     speech_recognition = SpeechRecognition(config, processing_queue, translation_queue, args)
     translation = Translation(translation_queue, args)
