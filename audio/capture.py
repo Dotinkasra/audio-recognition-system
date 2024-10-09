@@ -44,9 +44,8 @@ class AudioCapture:
 
     @staticmethod
     def get_input_device_index(input_device):
-        if input_device is False:
+        if input_device is None or input_device == "":
             input_device = "blackhole"
-
         p = pyaudio.PyAudio()
         for i in range(p.get_device_count()):
             info = p.get_device_info_by_index(i)
