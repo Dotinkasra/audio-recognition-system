@@ -1,3 +1,4 @@
+import sys
 import argparse
 import threading
 import time
@@ -10,8 +11,12 @@ from utils.resource_manager import ResourceManager
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Real-time Audio Transcription")
-    parser.add_argument("--model_path", type=str, default="mlx-community/whisper-large-v3-turbo-q4",
-                        help="Path or HuggingFace repo for the Whisper model")
+    if sys.platform == 'darwin':
+        parser.add_argument("--model-path", type=str, default="mlx-community/whisper-large-v3-turbo",
+                            help="Path or HuggingFace repo for the Whisper model")
+    parser.add_argument("--model-size", default="large-v3-turbo",
+                        choices=["tiny", "base", "small", "medium", "large-v3", "large-v3-turbo", "turbo"],
+                        help="Model size for Whisper (default: medium)")
     parser.add_argument("--language", type=str, default="ja",
                         help="Language code for speech recognition (e.g., 'en' for English, 'ja' for Japanese)")
     parser.add_argument("--format", type=str, default="int16",
@@ -25,8 +30,10 @@ def parse_arguments():
                         help="Chunk size (default: 1024)")
     parser.add_argument("--input_device", type=str, help="Input device name (default: auto-detect Black Hole)")
     parser.add_argument("--debug", action="store_true", help="Enable debug mode")
-    parser.add_argument("--buffer_duration", type=float, default=2.0,
-                        help="Duration of audio buffer in seconds (default: 2.0)")
+    parser.add_argument("--buffer-duration", type=float, default=5.0,
+                        help="Duration of audio buffer in seconds (default: 5.0)")
+    parser.add_argument("--output-dir", type=str, default="logs",
+                        help="Directory where log files for recognized and translated audio will be saved. Default is 'logs'.")
     return parser.parse_args()
 
 class AudioTranscriptionSystem:

@@ -1,10 +1,16 @@
-import mlx_whisper
+import sys
+import os
+import datetime
 import queue
 import wave
 import time
 import numpy as np
 import pyaudio
-import queue
+
+if sys.platform == 'darwin':
+    import mlx_whisper
+else:
+    import whisper
 
 class SpeechRecognition:
     def __init__(self, config, processing_queue, translation_queue, args):
@@ -12,6 +18,14 @@ class SpeechRecognition:
         self.processing_queue = processing_queue
         self.translation_queue = translation_queue
         self.args = args
+
+        if sys.platform != 'darwin':
+            self.model = whisper.load_model(self.args.model_size)
+
+        os.makedirs(self.args.output_dir, exist_ok=True)
+        current_time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.log_file_path = os.path.join(self.args.output_dir,
+                                        f"recognized_audio_log_{current_time}.txt")
 
     def recognition_thread(self, is_running):
         last_text = ""
@@ -26,9 +40,12 @@ class SpeechRecognition:
                     self.save_audio_debug(audio_data, f"debug_audio_{time.time()}.wav")
                 
                 try:
-                    result = mlx_whisper.transcribe(normalized_audio,
-                                                    language=self.args.language,
-                                                    path_or_hf_repo=self.args.model_path)
+                    if sys.platform == 'darwin':
+                        result = mlx_whisper.transcribe(normalized_audio,
+                                                        language=self.args.language,
+                                                        path_or_hf_repo=self.args.model_path)
+                    else:
+                        result = self.model.transcribe(normalized_audio, language=self.args.language)
                 except Exception as e:
                     print(f"音声認識エラー: {e}")
                     continue
@@ -41,9 +58,13 @@ class SpeechRecognition:
                     last_text_time = current_time
                     if self.translation_queue:
                         self.translation_queue.put(text)
+                    # 認識結果をファイルに追記
+                    with open(self.log_file_path, "a", encoding="utf-8") as log_file:
+                        log_file.write(text + "\n")
+
                 elif self.args.debug:
                     print("処理後のテキストが空か、直前の文と同じため出力をスキップします")
-            
+
             except queue.Empty:
                 if self.args.debug:
                     print("認識キューが空です")
@@ -75,21 +96,26 @@ class SpeechRecognition:
         sentence_end_chars = ('.', '!', '?', '。', '！', '？')
         return word.endswith(sentence_end_chars)
 
-    @staticmethod
-    def print_with_strictly_controlled_linebreaks(text):
+    def print_with_strictly_controlled_linebreaks(self, text):
         words = text.split()
         buffer = []
+        final_output = ""
         for i, word in enumerate(words):
             buffer.append(word)
             
             if SpeechRecognition.is_sentence_end(word) or i == len(words) - 1:
-                print(' '.join(buffer), end='')
+                line = ' '.join(buffer)
+                final_output += line
                 if SpeechRecognition.is_sentence_end(word):
-                    print('\n', end='', flush=True)
-                    buffer = []  # 文末の場合のみバッファをクリア
-                else:
-                    print(' ', end='', flush=True)
+                    final_output += '\n'
+                elif i == len(words) - 1:
+                    final_output += ' '
+                buffer = []
 
         if buffer:
-            print(' '.join(buffer), end='', flush=True)
+            line = ' '.join(buffer)
+            final_output += line
+
+        # コンソールに出力
+        print(final_output, end='', flush=True)
 

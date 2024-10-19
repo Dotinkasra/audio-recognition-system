@@ -3,13 +3,19 @@
 An audio recognition and real-time translation system built to efficiently transcribe and translate audio input. This repository provides scripts for seamless audio processing with minimal setup, making it ideal for both researchers and developers.
 
 ## Table of Contents
-- [Overview](#overview)
-- [Installation](#installation)
-- [Usage](#usage)
-- [File Descriptions](#file-descriptions)
-- [Troubleshooting](#troubleshooting)
-- [Contributions](#contributions)
-- [License](#license)
+
+- [Audio Recognition System](#audio-recognition-system)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+  - [Installation](#installation)
+    - [1. Prerequisites](#1-prerequisites)
+    - [2. Clone the Repository](#2-clone-the-repository)
+    - [3. Install Dependencies](#3-install-dependencies)
+  - [Usage](#usage)
+  - [File Descriptions](#file-descriptions)
+  - [Troubleshooting](#troubleshooting)
+  - [Contributions](#contributions)
+  - [License](#license)
 
 ## Overview
 
@@ -39,22 +45,37 @@ The Audio Recognition System enables audio transcription and, optionally, transl
 
 ## Usage
 
-This repository offers two main scripts depending on your needs:
+### Step 1: List Available Audio Devices
+
+Before starting audio recognition, list the available audio devices and select the one you want to use:
+
+```bash
+python list_audio_devices.py
+```
+
+This command will output a list of audio devices with their respective IDs. Note down the device ID that you want to use for audio recognition.
+
+### Step 2: Run the Audio Recognition Script
+
+Depending on your needs, you can run the following scripts:
 
 1. **For Transcription Only**  
    Transcribes live audio and outputs it to the console.
    ```bash
-   python main_transcription_only.py
+   python main_transcription_only.py --input-device <device_number>
    ```
 
 2. **For Transcription and Translation**  
    Transcribes and translates audio in real-time, displaying both the original and translated text.
    ```bash
-   python main_with_translation.py
+   python main_with_translation.py --input-device <device_number>
    ```
+
+Again, replace `<device_number>` with the appropriate ID.
 
 ## File Descriptions
 
+- **`list_audio_devices.py`**: Lists available audio devices along with their device IDs.
 - **`main_transcription_only.py`**: Handles real-time audio transcription.
 - **`main_with_translation.py`**: Manages both transcription and translation of live audio.
 - **`requirements.txt`**: Lists all necessary Python packages.
